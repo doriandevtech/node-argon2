@@ -1,6 +1,6 @@
 #include <cassert>
 #include <cstdint>
-#include <string>
+#include <vector>
 
 #include <napi.h>
 #include "../argon2/include/argon2.h"
@@ -13,13 +13,14 @@ using namespace Napi;
 namespace {
 #endif
 
-using ustring = std::basic_string<uint8_t>;
+using ustring = std::vector<uint8_t>;
 const char* type2string(argon2_type type) { return argon2_type2string(type, false); };
 
 ustring from_buffer(const Value& value)
 {
     const auto& buf = value.As<Buffer<uint8_t>>();
-    return {buf.Data(), buf.Length()};
+    const auto& data = buf.Data();
+    return {data, data + buf.Length()};
 }
 
 Buffer<uint8_t> to_buffer(const Env& env, const ustring& str)
@@ -91,7 +92,7 @@ public:
             SetError(argon2_error_message(result));
             /* LCOV_EXCL_STOP */
         } else {
-            hash.assign(buf.get(), opts.hash_length);
+            hash.assign(buf.get(), buf.get() + opts.hash_length);
         }
     }
 
